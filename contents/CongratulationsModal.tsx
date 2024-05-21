@@ -5,8 +5,9 @@ import React, { useEffect, useState } from "react"
 import { messages } from "../constants"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://leetcode.com/*"]
+  matches: ["https://*.manhattanreview.com/*"]
 }
+console.log("plasmo config ")
 // Have to do this in order to get the css to apply (see the plasmo docs for more info)
 export const getStyle = () => {
   const style = document.createElement("style")
@@ -17,15 +18,21 @@ export const getStyle = () => {
 const CongratulationsModal = () => {
   const [showModal, setShowModal] = useState(false)
   const [language, setLanguage] = useState("")
+  const field = document.querySelector("#wf_qb_answer > p")
+  const answered = field !== null
+  if (answered) {
+    chrome.runtime.sendMessage({ action: "questionAnswered" })
+    const correct = field.innerText.includes("correct")
+    if (correct) {
+      chrome.runtime.sendMessage({ action: "correctAnswer" })
+    }
+  }
+
   useEffect(() => {
     const handleClick = (event: any) => {
       let currentTarget = event.target
       while (currentTarget) {
-        if (
-          currentTarget.matches(
-            'button[data-e2e-locator="console-submit-button"]'
-          )
-        ) {
+        if (currentTarget.matches('input[name="submit_answer"]')) {
           chrome.runtime.sendMessage({ action: "userClickedSubmit" })
         }
         // We hit a child element, so we go up the DOM until we're at the button

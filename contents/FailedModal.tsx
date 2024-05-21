@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react"
 import FailImage from "~components/FailImage"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://leetcode.com/*"]
+  matches: ["https://www.manhattanreview.com/*"]
 }
 // Have to do this in order to get the css to apply (see the plasmo docs for more info)
 export const getStyle = () => {
@@ -21,11 +21,7 @@ const FailedModal = () => {
     const handleClick = (event: any) => {
       let currentTarget = event.target
       while (currentTarget) {
-        if (
-          currentTarget.matches(
-            'button[data-e2e-locator="console-submit-button"]'
-          )
-        ) {
+        if (currentTarget.matches('input[name="submit_answer"]')) {
           chrome.runtime.sendMessage({ action: "userClickedSubmit" })
         }
         // We hit a child element, so we go up the DOM until we're at the button
