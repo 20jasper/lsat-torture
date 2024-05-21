@@ -1,12 +1,14 @@
 import { Storage } from "@plasmohq/storage"
 
+import type { Difficulty, Problem } from "~leetcode-problems/manhattanReview"
+
 const storage = new Storage()
 
 export const getProblemUrl = async () => await storage.get("problemURL")
 export const getProblemSet = async () =>
   (await storage.get("problemSets")) ?? "all"
 export const getDifficulty = async () =>
-  (await storage.get("difficulty")) ?? "all"
+  (await storage.get<Difficulty>("difficulty")) ?? null
 export const getIncludePremium = async () =>
   Boolean(await storage.get("includePremium")) ?? false
 export const getProblemSolved = async () =>
@@ -18,13 +20,10 @@ export const getHyperTortureMode = async () =>
 export const getEnableRedirectOnEveryProblem = async () =>
   !(await storage.get("enableRedirectOnEveryProblem"))
 
-export async function updateProblem(
-  problem: { url: string; name: string },
-  isSolved: boolean
-) {
+export async function updateProblem(problem: Problem, isSolved: boolean) {
   return Promise.all([
-    storage.set("problemURL", problem.url),
-    storage.set("problemName", problem.name),
+    storage.set("problemURL", problem.href),
+    storage.set("problemName", problem.text),
     storage.set("problemDate", new Date().toDateString()),
     updateProblemSolvedState(isSolved)
   ])
