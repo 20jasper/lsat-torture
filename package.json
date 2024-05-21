@@ -1,9 +1,9 @@
 {
   "name": "leetcode-torture",
-  "displayName": "Leetcode torture",
+  "displayName": "Lsat torture",
   "version": "0.0.1",
-  "description": "An extension to torture you with LeetCode problems and force you to solve them.",
-  "author": "The Coding Sloth",
+  "description": "An extension to torture you with LSAT problems and force you to solve them.",
+  "author": "The Coding Sloth and 20jasper",
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
