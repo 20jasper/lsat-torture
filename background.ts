@@ -1,17 +1,16 @@
 import { getHyperTortureMode, resetHyperTortureStreak, storage } from "storage"
 
-import {
-  getAllLeetCodeProblems,
-  getLeetCodeProblemFromProblemSet
-} from "~leetcodeProblems"
-import type { APILeetCodeProblem, UserState } from "~types"
+import type {
+  Category,
+  Difficulty,
+  Problem
+} from "~leetcode-problems/manhattanReview"
+import { problems } from "~leetcode-problems/manhattanReview"
+import type { UserState } from "~types"
 
-const LEETCODE_URL = "https://leetcode.com"
+const LEETCODE_URL = "https://www.manhattanreview.com/"
 const RULE_ID = 1
 const isLeetCodeUrl = (url: string) => url.includes(LEETCODE_URL)
-
-const isSubmissionSuccessURL = (url: string) =>
-  url.includes("/submissions/detail/") && url.includes("/check/")
 
 const sendUserSolvedMessage = (languageUsed: string) => {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -45,76 +44,24 @@ const state: UserState = {
   HTcurrentStreak: null
 }
 
-export async function getProblemListFromLeetCodeAPI(
-  difficulty: string,
-  problemSet: string
-): Promise<APILeetCodeProblem[]> {
-  try {
-    const query = `
-      query problemsetQuestionList {
-        problemsetQuestionList: questionList(
-          categorySlug: ""
-          limit: -1
-          skip: 0
-          filters: {
-            ${
-              difficulty && difficulty !== "all"
-                ? "difficulty: " + difficulty
-                : ""
-            }
-            ${problemSet?.length ? "listId: " + '"' + problemSet + '"' : ""}
-          }
-        ) {
-          questions: data {
-            acRate
-            difficulty
-            freqBar
-            frontendQuestionId: questionFrontendId
-            isFavor
-            paidOnly: isPaidOnly
-            status
-            title
-            titleSlug
-            topicTags {
-              name
-              id
-              slug
-            }
-            hasSolution
-            hasVideoSolution
-          }
-        }
-      }
-    `
-
-    const body = {
-      query
+/**
+ * @param difficulty `null` means no filtering
+ * @param category `null` means no filtering
+ */
+export function filterProblemList(
+  difficulty: Difficulty | null,
+  category: Category | null
+): Problem[] {
+  return problems.filter((p) => {
+    if (difficulty !== null && difficulty !== p.difficulty) {
+      return false
+    }
+    if (category !== null && category !== p.category) {
+      return false
     }
 
-    const response = await fetch("https://leetcode.com/graphql", {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    })
-
-    const responseData = await response.json()
-    await storage.updatePermissions(true)
-
-    return responseData.data.problemsetQuestionList.questions
-  } catch (error) {
-    console.log(error.toString())
-    if (
-      error.message.includes("NetworkError") ||
-      error.message.includes("CORS") ||
-      error.message === "Network response was not ok"
-    ) {
-      console.log("CORS error detected.")
-      await storage.updatePermissions(false)
-    }
-    return undefined
-  }
+    return true
+  })
 }
 
 export const handleAdditionalProblemRedirect = async (problemUrl: string) => {
@@ -122,20 +69,13 @@ export const handleAdditionalProblemRedirect = async (problemUrl: string) => {
     await setRedirectRule(problemUrl)
 }
 
-export async function generateRandomLeetCodeProblem(): Promise<{
-  url: string
-  name: string
-}> {
+export async function generateRandomLeetCodeProblem(): Promise<Problem> {
   try {
-    const problemSet = await storage.getProblemSet()
     const difficulty = await storage.getDifficulty()
-    // Check if list is from Leetcode Graphql or all
-    if (problemSet === "all" || problemSet.startsWith("lg")) {
-      await storage.initiateLoading()
-      return await getAllLeetCodeProblems(difficulty, problemSet)
-    } else {
-      return await getLeetCodeProblemFromProblemSet(difficulty, problemSet)
-    }
+
+    const list = filterProblemList(difficulty, null)
+    const i = Math.floor(Math.random() * list.length)
+    return list[i]
   } catch (error) {
     console.error("Error generating random problem", error)
     return undefined
@@ -171,9 +111,18 @@ function onMessageReceived(
         "User clicked submit, adding listener",
         state.solvedListenerActive
       )
-      chrome.webRequest.onCompleted.addListener(checkIfUserSolvedProblem, {
-        urls: ["*://leetcode.com/submissions/detail/*/check/"]
-      })
+      chrome.webRequest.onCompleted.addListener(
+        (d) => checkIfUserSolvedProblem(false, false),
+        {
+          urls: ["https://*.manhattanreview.com/*"]
+        }
+      )
+      break
+    case "questionAnswered":
+      checkIfUserSolvedProblem(true, false)
+      break
+    case "correctAnswer":
+      checkIfUserSolvedProblem(true, true)
       break
     default:
       console.warn("Unknown message action:", message.action)
@@ -191,15 +140,13 @@ async function setRedirectRule(redirectUrl: string) {
     condition: {
       urlFilter: "*://*/*",
       excludedInitiatorDomains: [
-        "leetcode.com",
-        "www.leetcode.com",
+        "manhattanreview.com",
+        "www.manhattanreview.com",
         "developer.chrome.com"
       ],
-
       resourceTypes: ["main_frame"]
     }
   }
-
   try {
     chrome.declarativeNetRequest.updateDynamicRules({
       removeRuleIds: [RULE_ID],
@@ -211,10 +158,7 @@ async function setRedirectRule(redirectUrl: string) {
   }
 }
 
-export const updateProblemState = async (problem: {
-  name: string
-  url: string
-}) => {
+export const updateProblemState = async (problem: Problem) => {
   await storage.updateProblem(problem, state.leetcodeProblemSolved)
 }
 
@@ -225,81 +169,45 @@ export const updateStorage = async () => {
     state.leetcodeProblemSolved = false
     updateProblemState(problem)
     if (!state.leetcodeProblemSolved && isRedirectEnabled)
-      await setRedirectRule(problem.url)
+      await setRedirectRule(problem.href)
   } catch (error) {
     throw new Error("Error generating random problem: " + error)
   }
 }
 
 const checkIfUserSolvedProblem = async (
-  details: chrome.webRequest.WebResponseCacheDetails
+  answered: boolean,
+  correct: boolean
 ) => {
   // If the user has already solved the problem, then don't do anything
   if (await storage.getProblemSolved()) return
   // Get the current active tab's URL
-  let currentURL = ""
-  try {
-    const [activeTab] = await new Promise<chrome.tabs.Tab[]>((resolve) => {
-      chrome.tabs.query({ active: true, currentWindow: true }, resolve)
-    })
-
-    currentURL = activeTab.url
-  } catch (error) {
-    console.error("Error getting active tab:", error)
-    return
-  }
-
-  const problemUrl = await storage.getProblemUrl()
-
-  const sameUrl =
-    problemUrl === currentURL || problemUrl + "description/" === currentURL
-
-  if (!sameUrl) {
-    return
-  }
-
-  //lastCheckedUrl = details.url
-  //lastCheckedTimestamp = now
 
   if (state.solvedListenerActive) {
     // Remove the listener so that it doesn't fire again, since the outcome will either be success or fail
     // And we'll add it again when the user clicks submit
     state.solvedListenerActive = false
-    chrome.webRequest.onCompleted.removeListener(checkIfUserSolvedProblem)
+    // chrome.webRequest.onCompleted.removeListener(checkIfUserSolvedProblem)
   }
 
-  if (isSubmissionSuccessURL(details.url)) {
+  if (answered) {
     try {
       const hyperTortureMode = await getHyperTortureMode()
-      const response = await fetch(details.url)
-      const data = await response.json()
-      if (data.state === "STARTED" || data.state === "PENDING") {
-        if (!state.solvedListenerActive) {
-          state.solvedListenerActive = true
-          chrome.webRequest.onCompleted.addListener(checkIfUserSolvedProblem, {
-            urls: ["*://leetcode.com/submissions/detail/*/check/"]
-          })
-        }
-        return
-      }
-      if (data.status_msg !== "Accepted") {
+
+      if (!correct) {
         if (hyperTortureMode) {
           await resetHyperTortureStreak()
           sendUserFailedMessage()
         }
         return
       }
-      if (
-        data.status_msg === "Accepted" &&
-        data.state === "SUCCESS" &&
-        !data.code_answer
-      ) {
+      if (correct) {
         await storage.updateStreak()
         state.leetcodeProblemSolved = true
         chrome.declarativeNetRequest.updateDynamicRules({
           removeRuleIds: [RULE_ID]
         })
-        chrome.webRequest.onCompleted.removeListener(checkIfUserSolvedProblem)
+        // chrome.webRequest.onCompleted.removeListener(checkIfUserSolvedProblem)
         if (hyperTortureMode) {
           console.log("Hyper torture mode is enabled")
           if (state.lastAttemptedUrl) {
@@ -328,7 +236,6 @@ async function tryResetStreak() {
 
 export async function toggleUrlListener(toggle: boolean): Promise<void> {
   if (toggle) {
-    // Save users request url for further redirect
     // Save users request url for further redirect
     state.urlListener = (details: chrome.webRequest.WebRequestBodyDetails) => {
       if (
