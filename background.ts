@@ -119,7 +119,7 @@ function onMessageReceived(
       )
       break
     case "questionAnswered":
-      checkIfUserSolvedProblem(true, false)
+      checkIfUserSolvedProblem(true, true)
       break
     case "correctAnswer":
       checkIfUserSolvedProblem(true, true)
