@@ -208,42 +208,6 @@ export const problems: Problem[] = [
     difficulty: "Challenging"
   },
   {
-    href: "https://www.manhattanreview.com/free-lsat-practice-questions/?qbid=171",
-    text: "Question LSAT-LG-1",
-    category: "Variable",
-    difficulty: "Variable"
-  },
-  {
-    href: "https://www.manhattanreview.com/free-lsat-practice-questions/?qbid=172",
-    text: "Question LSAT-LG-2",
-    category: "Variable",
-    difficulty: "Variable"
-  },
-  {
-    href: "https://www.manhattanreview.com/free-lsat-practice-questions/?qbid=181",
-    text: "Question LSAT-LG-3",
-    category: "Variable",
-    difficulty: "Variable"
-  },
-  {
-    href: "https://www.manhattanreview.com/free-lsat-practice-questions/?qbid=182",
-    text: "Question LSAT-LG-4",
-    category: "Variable",
-    difficulty: "Variable"
-  },
-  {
-    href: "https://www.manhattanreview.com/free-lsat-practice-questions/?qbid=204",
-    text: "Question LSAT-LG-5",
-    category: "Variable",
-    difficulty: "Variable"
-  },
-  {
-    href: "https://www.manhattanreview.com/free-lsat-practice-questions/?qbid=205",
-    text: "Question LSAT-LG-6",
-    category: "Variable",
-    difficulty: "Variable"
-  },
-  {
     href: "https://www.manhattanreview.com/free-lsat-practice-questions/?qbid=173",
     text: "Question LSAT-RC-1",
     category: "Variable",
