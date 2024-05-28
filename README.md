@@ -1,15 +1,10 @@
 This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
 
-# [LeetCode Torture](https://chromewebstore.google.com/detail/leetcode-torture/clbhgfneekiimoaakhhdjimgnnbnfbeh)
+# LSAT Torture
 
-![LeetCode Torture Logo](https://raw.githubusercontent.com/The-CodingSloth/haha-funny-leetcode-extension/main/assets/icon.png)
+LSAT Torture is an extension designed to make you productive to ace the LSAT. When you activate this extension, you won't be able to access any other websites until you solve your randomly assigned problem.
 
-LeetCode Torture is an extension designed to make you productive to ace those technical interviews. When you activate this extension, you won't be able to access any websites except LeetCode until you solve your randomly assigned LeetCode problem. [Here's the video on YouTube.](https://youtu.be/e4ReFOWMG9o?si=CJ2EdqVPFPdcc7GN)
-
-## Features
-
-- Random Problem Assignment: Get a random LeetCode problem every day
-- Website Blocker: Prevents you from accessing any websites until you solve your problem
+This is forked from LeetCode Torture and uses much of the same code!
 
 ## Local Installation for Testing and Development
 
@@ -43,25 +38,5 @@ LeetCode Torture is an extension designed to make you productive to ace those te
 
 #### To get the extension working properly right now on Firefox
 
-- Go to leetcode.com and right click the extension, and give the extension permission
+- Go to manhattenreview.com and right click the extension, and give the extension permission
 - Do the same for any websites you visit (Firefox, doesn't give permissions automatically like chrome which is why we have to do this, it's annoying)
-
-## FAQ
-
-### Why did you make this?
-
-Just for fun
-
-### Do I need to be a senior 10x developer to help and contribute?
-
-Nope, anybody can contribute to this torture machine, skill level does not matter. I made this project with no knowledge about making extensions
-
-### How do I help and improve LeetCode Torture?
-
-Read our [CONTRIBUTING.md file](https://github.com/The-CodingSloth/haha-funny-leetcode-extension/blob/main/CONTRIBUTING.md) to learn how to help make this extension more painful for everyone
-
-### I don't even know where to start
-
-That's perfectly fine, take some time and read the code to understand what's going on. You don't have to make super big changes, they can be as small as fixing my dumb typos on these files or adding helpful comments to the code.
-
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
